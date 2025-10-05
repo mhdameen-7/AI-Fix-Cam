@@ -1,0 +1,260 @@
+{
+  "0 Broken Switch": {
+    "title": "Fixing a Switchboard",
+    "safetyNotes": [
+      "Turn off the main power supply (from the MCB or main switch).",
+      "Use a voltage tester to confirm there’s no electricity on the switchboard.",
+      "Make sure your hands are dry and you’re on a dry surface."
+    ],
+    "tools": [
+      "Screwdriver (usually flat or Philips)",
+      "Tester screwdriver",
+      "Wire cutter/stripper",
+      "Electrical tape",
+      "New switch/socket/plate (if replacing)"
+    ],
+    "instructions": [
+      { 
+        "title": "Remove the Switchboard Cover",
+        "description": "Unscrew the outer plate carefully. Pull the switchboard out slightly to see the wiring behind it."
+      },
+      {
+        "title": "Identify the Problem",
+        "description": "Look for the cause. Is a switch not working? Is a socket loose? Is there a burnt smell or a black mark? Or is the plate just physically broken?"
+      },
+      {
+        "title": "Fix or Replace the Component",
+        "description": "For a faulty switch, unscrew it and disconnect the wires. Use a new switch with the same amp rating. Connect the Phase (live) wire to 'L' or 'IN' and the Load (to bulb/fan) wire to 'OUT'. Tighten screws firmly to prevent sparks."
+      },
+      {
+        "title": "Inspect for Loose or Burnt Wires",
+        "description": "If a wire is burnt, cut off the damaged section and strip about 1 cm of fresh insulation. Reconnect it securely to the terminal."
+      },
+      {
+        "title": "Reassemble",
+        "description": "After fixing, fit everything back into the box neatly, making sure no wires are pinched. Screw the plate tightly to the wall."
+      },
+      {
+        "title": "Turn Power ON and Test",
+        "description": "Switch the main power back on. Use your tester to check functionality. Test each switch, socket, and regulator carefully."
+      }
+    ],
+    "video_id": "SXrHK7DyL4E"
+  },
+  "1 Leaking Pipe": {
+    "title": "Leaking Pipe & Joint",
+    "safetyNotes": [
+      "Turn off the main water supply valve for the house before starting.",
+      "Place a bucket and some old towels under the pipe to catch any remaining water.",
+      "Wear gloves to get a better grip on wet tools."
+    ],
+    "tools": [
+      "Pipe Wrench or Adjustable Wrench",
+      "Pipe Sealant Tape (Teflon tape)",
+      "Wire brush or rag",
+      "Bucket"
+    ],
+    "instructions": [
+      {
+        "title": "Turn Off Water and Drain",
+        "description": "Locate and shut off the main water valve. Open the lowest tap in the house to drain the water from the pipes."
+      },
+      {
+        "title": "Loosen the Leaking Joint",
+        "description": "Use two wrenches. Place one on the pipe to hold it steady and the other on the fitting to turn it counter-clockwise. This prevents twisting the entire pipe."
+      },
+      {
+        "title": "Clean the Threads",
+        "description": "Once the joint is apart, use a wire brush or rag to clean the old tape, dirt, and rust from the male threads of the pipe."
+      },
+      {
+        "title": "Apply New Sealant Tape",
+        "description": "Wrap new Teflon tape tightly around the male threads in a clockwise direction, 3-5 times. The tape should be flat and not bunched up."
+      },
+      {
+        "title": "Reassemble and Tighten",
+        "description": "Screw the fitting back on by hand first, then use the wrenches to tighten it. It should be snug, but do not overtighten as this can crack the fitting."
+      },
+      {
+        "title": "Test for Leaks",
+        "description": "Slowly turn the main water supply back on. Check the joint for any drips or leaks. If it still leaks, you may need to tighten it a little more or re-apply the tape."
+      }
+    ],
+    "video_id": "BswvXEIWEGo"
+  },
+  "2 Wall Crack": {
+    "title": "Minor Wall Crack",
+    "safetyNotes": [
+      "Wear safety glasses to protect your eyes from dust and debris.",
+      "Place a drop cloth or old newspaper on the floor to catch dust and spackle.",
+      "Ensure the room is well-ventilated."
+    ],
+    "tools": [
+      "Utility Knife",
+      "Putty Knife (flexible)",
+      "Spackling Paste or Joint Compound",
+      "Fine-grit Sandpaper (120-grit)",
+      "Primer and Paint"
+    ],
+    "instructions": [
+      {
+        "title": "Prepare the Crack",
+        "description": "Use a utility knife to gently widen the crack into a 'V' shape. This helps the spackle get a better grip. Remove any loose plaster or debris."
+      },
+      {
+        "title": "Apply Spackling Paste",
+        "description": "Scoop a small amount of spackle onto your putty knife. Press it firmly into the crack, spreading it smoothly over the surface. Feather the edges so it blends with the wall."
+      },
+      {
+        "title": "Allow to Dry",
+        "description": "Let the spackle dry completely. This can take a few hours. Check the product instructions. The patch may shrink slightly as it dries."
+      },
+      {
+        "title": "Apply a Second Coat (If Needed)",
+        "description": "If the crack is still visible after the first coat has dried, apply a second, thinner layer of spackle to fully cover it."
+      },
+      {
+        "title": "Sand the Area",
+        "description": "Once completely dry, lightly sand the patched area with fine-grit sandpaper until it is perfectly smooth and flush with the wall."
+      },
+      {
+        "title": "Prime and Paint",
+        "description": "Wipe away any dust with a damp cloth. Apply a coat of primer over the patch, let it dry, and then paint it to match the rest of your wall."
+      }
+    ],
+    "video_id": "ANORiqAJ7kc"
+  },
+  "3 Non-working Light": {
+    "title": "Non-working Light",
+    "safetyNotes": [
+      "Always turn off the light switch AND the circuit breaker before touching any part of the fixture.",
+      "If the light bulb has just burned out, it may be very hot. Let it cool down before touching it.",
+      "Use a sturdy ladder or step-stool."
+    ],
+    "tools": [
+      "New Light Bulb (correct type and wattage)",
+      "Ladder or Step-stool",
+      "Gloves (optional, for grip)"
+    ],
+    "instructions": [
+      {
+        "title": "Check the Obvious First",
+        "description": "Is the light switch on? Is the circuit breaker tripped? Flip the breaker off and on again to be sure."
+      },
+      {
+        "title": "Replace the Light Bulb",
+        "description": "This is the most common fix. With the power off, carefully unscrew the old bulb by turning it counter-clockwise. Screw in the new bulb until it is snug, but not overly tight."
+      },
+      {
+        "title": "Check the Fixture Socket",
+        "description": "With the power OFF, look inside the socket. There is a small metal tab at the bottom. Sometimes this tab gets flattened and doesn't make contact. Gently pry it up slightly with a screwdriver."
+      },
+      {
+        "title": "Test the Light",
+        "description": "Turn the power back on at the circuit breaker and then flip the wall switch. If the new bulb works, you're done!"
+      },
+      {
+        "title": "If It Still Doesn't Work",
+        "description": "If a new bulb in a good socket doesn't work, the problem is likely with the light fixture itself or the wall switch. This may require an electrician."
+      }
+    ],
+    "video_id": "nLAe-__a20s"
+  },
+  "4 Leaking Water Tap": {
+    "title": "Dripping Water Tap",
+    "safetyNotes": [
+      "Turn off the water supply to the tap. The shutoff valve is usually located under the sink.",
+      "Plug the sink drain with a cloth to prevent small screws or parts from falling in.",
+      "Be gentle when prying off caps to avoid scratching the finish."
+    ],
+    "tools": [
+      "Adjustable Wrench or Pliers",
+      "Screwdriver (Philips and flat-head)",
+      "Replacement Washers and O-rings (get a variety pack)",
+      "Rag"
+    ],
+    "instructions": [
+      {
+        "title": "Shut Off Water and Remove Handle",
+        "description": "Turn off the water supply valve under the sink. Turn the tap on to drain any remaining water. Pry off the decorative cap on the handle and remove the screw underneath."
+      },
+      {
+        "title": "Expose the Valve Stem",
+        "description": "With the handle removed, use an adjustable wrench to loosen and unscrew the packing nut (the part the handle was attached to). You can now pull out the entire valve stem."
+      },
+      {
+        "title": "Replace the Washer",
+        "description": "At the bottom of the valve stem, there is a small rubber washer held in by a brass screw. This is usually the cause of the drip. Unscrew it and replace it with a new one of the exact same size."
+      },
+      {
+        "title": "Replace the O-Ring",
+        "description": "Check the body of the valve stem for a rubber O-ring. If it looks worn or cracked, gently pry it off with a small screwdriver and replace it with a new one."
+      },
+      {
+        "title": "Reassemble the Tap",
+        "description": "Put the valve stem back into the tap body. Tighten the packing nut, put the handle back on, and tighten the screw. Replace the decorative cap."
+      },
+      {
+        "title": "Test Your Work",
+        "description": "Slowly turn the water supply valve back on. Check for any leaks around the handle and make sure the drip from the spout has stopped."
+      }
+    ],
+    "video_id": "QMtMKfDRNX0"   
+  },
+  "5 Non-working Fan": {
+    "title": "Fan or Ceiling Fan",
+    "safetyNotes": [
+      "Turn off the power at the wall switch AND at the main circuit breaker. This is critical.",
+      "Wait for the fan blades to stop completely before touching them.",
+      "Use a stable ladder and have someone assist you if possible."
+    ],
+    "tools": [
+      "Ladder",
+      "Voltage Tester",
+      "Screwdriver",
+      "Pliers"
+    ],
+    "instructions": [
+      {
+        "title": "Check the Simple Things First",
+        "description": "Is the pull chain pulled? Try pulling it a few times. If there's a remote, are the batteries good? Check the fan's direction switch on the motor housing; it might be stuck in the middle."
+      },
+      {
+        "title": "Check the Circuit Breaker",
+        "description": "Go to your home's main electrical panel. Find the breaker for the room and flip it completely off, then back on again. Sometimes breakers can trip without looking like it."
+      },
+      {
+        "title": "Check the Wall Switch",
+        "description": "With the power OFF at the breaker, remove the wall switch plate. Use a voltage tester to confirm there is no power. Check if any wires have come loose from the switch terminals."
+      },
+      {
+        "title": "Check Wiring in the Fan Canopy",
+        "description": "With the power OFF, lower the canopy at the top of the fan where it meets the ceiling. Look for any loose wire connections inside the wire nuts. Gently tug on each wire to ensure it's secure."
+      },
+      {
+        "title": "If Still Not Working",
+        "description": "If all connections are secure and the breaker is on, the problem may be a faulty capacitor or a burned-out motor. These repairs are more complex and may require a professional electrician."
+      }
+    ],
+    "video_id": "tLWENBTlPZY"
+  },
+  "default": {
+    "title": "Issue Not Recognized",
+    "safetyNotes": [
+      "When in doubt, always consult a professional technician.",
+      "Do not attempt repairs you are not comfortable with."
+    ],
+    "tools": ["N/A"],
+    "instructions": [
+      {
+        "title": "Analysis Failed",
+        "description": "The AI model could not identify the issue from the image. This could be due to poor lighting, an unclear angle, or a complex problem."
+      },
+      {
+        "title": "Recommendation",
+        "description": "Please try taking a clearer, well-lit photo from a different angle. Ensure the problem area is in the center of the photo."
+      }
+    ],
+    "video_id": null
+  }
+}

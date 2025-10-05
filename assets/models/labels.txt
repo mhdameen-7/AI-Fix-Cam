@@ -1,0 +1,6 @@
+0 Broken Switch
+1 Leaking Pipe
+2 Wall Crack
+3 Non-working Light
+4 Leaking Water Tap
+5 Non-working Fan

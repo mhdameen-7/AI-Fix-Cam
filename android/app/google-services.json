@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "503851913679",
+    "project_id": "aifixcam-database",
+    "storage_bucket": "aifixcam-database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503851913679:android:32aa6d8ee49731e4d542ba",
+        "android_client_info": {
+          "package_name": "com.example.aifixcam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxtzs92hGdCX2BCHJszDfMgwXzyWjIoJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

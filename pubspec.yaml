@@ -1,0 +1,45 @@
+name: aifixcam
+description: A mobile application that helps users identify and fix common household problems.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  image_picker: ^1.1.2
+  firebase_core: ^2.31.0    
+  cloud_firestore: ^4.17.3
+  
+  camera: ^0.11.2
+  tflite_flutter: ^0.11.0
+  youtube_player_flutter: ^9.1.2
+  path_provider: ^2.1.3
+  google_fonts: ^6.2.1 
+  image: ^4.1.7 # Added for image processing
+  
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/models/model.tflite
+    - assets/models/labels.txt
+    - assets/data/solution_data.json
+    # pubspec.yaml (at the very bottom of the file)
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo/logo.png"
+  min_sdk_android: 21 # Make sure this is here
