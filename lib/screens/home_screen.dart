@@ -1,16 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aifixcam/widgets/camera_view.dart';
-import 'package:aifixcam/models/problem_model.dart';
-import 'package:aifixcam/screens/result_screen.dart';
+import 'package:aifixcam1/models/history_model.dart';
+import 'package:aifixcam1/models/problem_model.dart';
+import 'package:aifixcam1/screens/result_screen.dart';
+import 'package:aifixcam1/screens/capture_screen.dart';
+import 'package:aifixcam1/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart'; // Import the image_picker
+import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-// We convert HomeScreen to a StatefulWidget to manage the loading state and AI model.
+// Converted to a StatefulWidget to handle loading and processing states.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,22 +23,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // We move the AI and data variables here
+  // State variables for AI model, data, and loading indicators.
   Interpreter? _interpreter;
   List<String> _labels = [];
   Map<String, dynamic> _solutionData = {};
+  bool _isInitializing = true;
   bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
-    // Load everything when the app starts
     _initializeApp();
   }
 
+  /// Loads all necessary data when the app starts.
   Future<void> _initializeApp() async {
-    // This is the same logic from the old camera screen, now centralized here.
     await Future.wait([_loadModel(), _loadLabels(), _loadSolutionData()]);
+    if (mounted) setState(() { _isInitializing = false; });
   }
 
   Future<void> _loadModel() async {
@@ -63,25 +68,61 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // --- THIS IS THE NEW FUNCTION FOR THE GALLERY ---
+  /// Runs the AI model on the provided image.
+  Future<String> _runInference(String imagePath) async {
+    if (_interpreter == null || _labels.isEmpty) throw Exception("Model or labels not loaded.");
+    final imageData = await File(imagePath).readAsBytes();
+    final image = img.decodeImage(imageData);
+    if (image == null) throw Exception("Could not decode image.");
+    final resizedImage = img.copyResize(image, width: 224, height: 224);
+    var inputBuffer = resizedImage.getBytes(order: img.ChannelOrder.rgb);
+    final input = inputBuffer.reshape([1, 224, 224, 3]);
+    final output = List.filled(1 * _labels.length, 0).reshape([1, _labels.length]);
+    _interpreter!.run(input, output);
+    final outputList = (output[0] as List<num>);
+    int maxIndex = 0;
+    for (int i = 1; i < outputList.length; i++) {
+      if (outputList[i] > outputList[maxIndex]) {
+        maxIndex = i;
+      }
+    }
+    return _labels[maxIndex];
+  }
+
+  /// Saves the diagnosis result to local storage.
+  Future<void> _saveHistoryItem(String title, String tempImagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final permanentImagePath = '${directory.path}/$fileName';
+    await File(tempImagePath).copy(permanentImagePath);
+
+    final newItem = HistoryItem(
+      title: title,
+      imagePath: permanentImagePath,
+      date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+    );
+    
+    final prefs = await SharedPreferences.getInstance();
+    final historyList = prefs.getStringList('diagnosis_history') ?? [];
+    historyList.add(json.encode(newItem.toJson()));
+    await prefs.setStringList('diagnosis_history', historyList);
+  }
+
+  /// Handles picking an image from the gallery and processing it.
   Future<void> _pickAndProcessImage() async {
     if (_isProcessing) return;
-
     final picker = ImagePicker();
-    // Open the gallery and wait for the user to pick an image.
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) return; // User cancelled the picker
-
+    if (image == null) return;
     setState(() { _isProcessing = true; });
 
     try {
-      // We use the same AI inference logic as the camera
       final problemKey = await _runInference(image.path);
       final solutionJson = _solutionData[problemKey.trim()] ?? _solutionData['default'];
       if (solutionJson == null) throw Exception("Could not find a solution.");
-      
       final solution = ProblemSolution.fromJson(solutionJson);
+      
+      await _saveHistoryItem(solution.title, image.path);
 
       if (mounted) {
         Navigator.of(context).push(
@@ -98,92 +139,87 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // This is the same AI logic, now available directly on the home screen.
-  Future<String> _runInference(String imagePath) async {
-    // ... (This function's code is exactly the same as the working version in camera_screen.dart)
-    if (_interpreter == null || _labels.isEmpty) throw Exception("Model or labels not loaded.");
-    final imageData = await File(imagePath).readAsBytes();
-    final image = img.decodeImage(imageData);
-    if (image == null) throw Exception("Could not decode image.");
-    final resizedImage = img.copyResize(image, width: 224, height: 224);
-    var inputBuffer = resizedImage.getBytes(order: img.ChannelOrder.rgb);
-    final input = inputBuffer.reshape([1, 224, 224, 3]);
-    final output = List.filled(1 * _labels.length, 0).reshape([1, _labels.length]);
-    _interpreter!.run(input, output);
-    final outputList = output[0] as List<int>;
-    int maxIndex = 0;
-    for (int i = 1; i < outputList.length; i++) {
-      if (outputList[i] > outputList[maxIndex]) {
-        maxIndex = i;
-      }
-    }
-    return _labels[maxIndex];
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.build_circle_outlined, size: 120, color: Color(0xFF00BFA5)),
-              const SizedBox(height: 20),
-              const Text(
-                'AI Fix Cam',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Identify household problems instantly and get step-by-step solutions.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.7)),
-              ),
-              const SizedBox(height: 60),
-
-              // --- NEW BUTTON LAYOUT ---
-              if (_isProcessing)
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                )
-              else
-                Column(
+      appBar: AppBar(
+        title: const Text('AI Fix Cam'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'View History',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HistoryScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: _isInitializing
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Button to open the live camera
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CameraScreen()),
-                        );
-                      },
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: const Text('Scan with Camera', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 56),
-                      ),
-                    ),
+                    const Icon(Icons.build_circle_outlined, size: 100, color: Colors.lightBlue),
                     const SizedBox(height: 20),
-                    // Button to open the gallery
-                    ElevatedButton.icon(
-                      onPressed: _pickAndProcessImage, // Calls our new function
-                      icon: const Icon(Icons.photo_library_outlined),
-                      label: const Text('Upload from Gallery', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade800, // Different style
-                        minimumSize: const Size(double.infinity, 56),
-                      ),
+                    const Text('AI Fix Cam', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Identify and fix household problems instantly using your camera.',
+                      style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.7)),
+                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 50),
+                    if (_isProcessing)
+                      const CircularProgressIndicator()
+                    else
+                      Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CaptureScreen()),
+                              );
+                            },
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text('Start Diagnosis'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.lightBlue,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // The "Upload from Gallery" button is now restored.
+                          ElevatedButton.icon(
+                            onPressed: _pickAndProcessImage,
+                            icon: const Icon(Icons.photo_library_outlined),
+                            label: const Text('Upload from Gallery'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey.shade800,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
-            ],
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }
+

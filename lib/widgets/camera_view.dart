@@ -1,24 +1,25 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:aifixcam/models/problem_model.dart';
-import 'package:aifixcam/screens/result_screen.dart';
+import 'package:aifixcam1/models/history_model.dart';
+import 'package:aifixcam1/models/problem_model.dart';
+import 'package:aifixcam1/screens/result_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+class CameraView extends StatefulWidget {
+  const CameraView({super.key});
 
   @override
-  State<CameraScreen> createState() => _CameraScreenState();
+  State<CameraView> createState() => _CameraViewState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraViewState extends State<CameraView> {
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   Interpreter? _interpreter;
@@ -36,17 +37,17 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        _showErrorDialog("No cameras found on this device.");
+        _showErrorDialog("No cameras found.");
         return;
       }
       final firstCamera = cameras.first;
       _controller = CameraController(firstCamera, ResolutionPreset.high, enableAudio: false);
       _initializeControllerFuture = _controller!.initialize();
-      
+
       await Future.wait([_loadModel(), _loadLabels(), _loadSolutionData()]);
       if (mounted) setState(() {});
     } catch (e) {
-      _showErrorDialog("Failed to initialize camera or AI model: ${e.toString()}");
+      _showErrorDialog("Failed to initialize camera: ${e.toString()}");
     }
   }
 
@@ -66,8 +67,7 @@ class _CameraScreenState extends State<CameraScreen> {
       print('FATAL ERROR: Failed to load labels: $e');
     }
   }
-
-  Future<void> _loadSolutionData() async {
+    Future<void> _loadSolutionData() async {
     try {
       final jsonString = await rootBundle.loadString('assets/data/solution_data.json');
       _solutionData = json.decode(jsonString);
@@ -76,48 +76,17 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    _interpreter?.close();
-    super.dispose();
-  }
-
-  // THIS FUNCTION CONTAINS THE PERMANENT FIX
   Future<String> _runInference(String imagePath) async {
     if (_interpreter == null || _labels.isEmpty) throw Exception("Model or labels not loaded.");
-
-    // 1. Read the image file as bytes
     final imageData = await File(imagePath).readAsBytes();
     final image = img.decodeImage(imageData);
     if (image == null) throw Exception("Could not decode image.");
-
-    // 2. Resize the image to the model's expected input size (224x224)
     final resizedImage = img.copyResize(image, width: 224, height: 224);
-
-    // 3. Create a byte buffer. This is a list of whole numbers (integers).
-    var inputBuffer = Uint8List(1 * 224 * 224 * 3);
-    int bufferIndex = 0;
-    for (var y = 0; y < resizedImage.height; y++) {
-      for (var x = 0; x < resizedImage.width; x++) {
-        var pixel = resizedImage.getPixel(x, y);
-        // THE FIX: We add the raw integer color values (0-255) to the buffer.
-        // We DO NOT divide by 255.0 here. This ensures the data type is uint8.
-        inputBuffer[bufferIndex++] = pixel.r.toInt();
-        inputBuffer[bufferIndex++] = pixel.g.toInt();
-        inputBuffer[bufferIndex++] = pixel.b.toInt();
-      }
-    }
-    
-    // 4. Reshape the buffer to the model's input shape and prepare the output buffer
+    var inputBuffer = resizedImage.getBytes(order: img.ChannelOrder.rgb);
     final input = inputBuffer.reshape([1, 224, 224, 3]);
     final output = List.filled(1 * _labels.length, 0).reshape([1, _labels.length]);
-
-    // 5. Run the inference
     _interpreter!.run(input, output);
-
-    // 6. Find the result with the highest score
-    final outputList = output[0] as List<int>;
+    final outputList = (output[0] as List<num>);
     int maxIndex = 0;
     for (int i = 1; i < outputList.length; i++) {
       if (outputList[i] > outputList[maxIndex]) {
@@ -126,28 +95,46 @@ class _CameraScreenState extends State<CameraScreen> {
     }
     return _labels[maxIndex];
   }
+    Future<void> _saveHistoryItem(String title, String tempImagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final permanentImagePath = '${directory.path}/$fileName';
+    await File(tempImagePath).copy(permanentImagePath);
+
+    final newItem = HistoryItem(
+      title: title,
+      imagePath: permanentImagePath,
+      date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+    );
+    
+    final prefs = await SharedPreferences.getInstance();
+    final historyList = prefs.getStringList('diagnosis_history') ?? [];
+    historyList.add(json.encode(newItem.toJson()));
+    await prefs.setStringList('diagnosis_history', historyList);
+  }
 
   Future<void> _onCapturePressed() async {
     if (_isProcessing || _controller == null || !_controller!.value.isInitialized) return;
-
     setState(() { _isProcessing = true; });
 
     try {
       final image = await _controller!.takePicture();
       final problemKey = await _runInference(image.path);
-
       final solutionJson = _solutionData[problemKey.trim()] ?? _solutionData['default'];
-      if (solutionJson == null) throw Exception("Could not find a solution for key: $problemKey");
-      
+      if (solutionJson == null) throw Exception("Could not find a solution.");
       final solution = ProblemSolution.fromJson(solutionJson);
+      
+      await _saveHistoryItem(solution.title, image.path);
 
       if (mounted) {
+        // We use pop so it goes back to the home screen after results
+        Navigator.of(context).pop(); 
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => ResultScreen(solution: solution)),
         );
       }
     } catch (e) {
-      _showErrorDialog("Failed to process image: ${e.toString()}");
+      _showErrorDialog("Error processing image: ${e.toString()}");
     } finally {
       if (mounted) setState(() { _isProcessing = false; });
     }
@@ -163,28 +150,41 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   @override
+  void dispose() {
+    _controller?.dispose();
+    _interpreter?.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Capture Problem')),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done && _controller != null) {
-            return Center(child: CameraPreview(_controller!));
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error initializing camera: ${snapshot.error}"));
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: _onCapturePressed,
-        child: _isProcessing 
-            ? const CircularProgressIndicator(color: Colors.white) 
-            : const Icon(Icons.camera_alt),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    // THIS WIDGET NO LONGER RETURNS A SCAFFOLD OR APPBAR.
+    // It returns a Stack so we can place the button over the camera preview.
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        FutureBuilder<void>(
+          future: _initializeControllerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done && _controller != null) {
+              return CameraPreview(_controller!);
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        ),
+        // Position the capture button at the bottom.
+        Positioned(
+          bottom: 40,
+          child: FloatingActionButton.large(
+            onPressed: _onCapturePressed,
+            backgroundColor: _isProcessing ? Colors.grey : Colors.lightBlue,
+            child: _isProcessing
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Icon(Icons.camera_alt),
+          ),
+        ),
+      ],
     );
   }
 }

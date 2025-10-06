@@ -1,4 +1,4 @@
-import 'package:aifixcam/models/problem_model.dart';
+import 'package:aifixcam1/models/problem_model.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -48,7 +48,7 @@ class _ResultScreenState extends State<ResultScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.tealAccent, size: 28),
+          Icon(icon, color: Colors.lightBlue, size: 28),
           const SizedBox(width: 12),
           Text(
             title,
@@ -109,7 +109,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: widget.solution.tools.map((tool) => ListTile(
-                      leading: const Icon(Icons.check_box_outline_blank_rounded, color: Colors.tealAccent),
+                      leading: const Icon(Icons.check_box_outline_blank_rounded, color: Colors.lightBlue),
                       title: Text(tool),
                     )).toList(),
                   ),
@@ -131,7 +131,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("$index. ${step.title}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.tealAccent)),
+                        Text("$index. ${step.title}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.lightBlue)),
                         const SizedBox(height: 8),
                         Text(step.description, style: const TextStyle(height: 1.5)),
                       ],
