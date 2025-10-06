@@ -1,4 +1,4 @@
-import 'package:aifixcam1/widgets/camera_view.dart';
+import 'package:aifixcam/widgets/camera_view.dart';
 import 'package:flutter/material.dart';
 
 class CaptureScreen extends StatelessWidget {

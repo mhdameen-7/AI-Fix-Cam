@@ -2,7 +2,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 // This line imports your main.dart file.
-import 'package:aifixcam1/main.dart';
+import 'package:aifixcam/main.dart';
 
 void main() {
   testWidgets('App launches and displays home screen', (WidgetTester tester) async {

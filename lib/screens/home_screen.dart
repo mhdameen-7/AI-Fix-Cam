@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aifixcam1/models/history_model.dart';
-import 'package:aifixcam1/models/problem_model.dart';
-import 'package:aifixcam1/screens/result_screen.dart';
-import 'package:aifixcam1/screens/capture_screen.dart';
-import 'package:aifixcam1/screens/history_screen.dart';
+import 'package:aifixcam/models/history_model.dart';
+import 'package:aifixcam/models/problem_model.dart';
+import 'package:aifixcam/screens/result_screen.dart';
+import 'package:aifixcam/screens/capture_screen.dart';
+import 'package:aifixcam/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +14,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-// Converted to a StatefulWidget to handle loading and processing states.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,12 +22,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // State variables for AI model, data, and loading indicators.
   Interpreter? _interpreter;
   List<String> _labels = [];
   Map<String, dynamic> _solutionData = {};
-  bool _isInitializing = true;
   bool _isProcessing = false;
+  bool _isInitializing = true;
 
   @override
   void initState() {
@@ -36,26 +34,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializeApp();
   }
 
-  /// Loads all necessary data when the app starts.
   Future<void> _initializeApp() async {
     await Future.wait([_loadModel(), _loadLabels(), _loadSolutionData()]);
-    if (mounted) setState(() { _isInitializing = false; });
+    if (mounted) setState(() => _isInitializing = false);
   }
 
   Future<void> _loadModel() async {
     try {
       _interpreter = await Interpreter.fromAsset('assets/models/model.tflite');
     } catch (e) {
-      print('FATAL ERROR: Failed to load TFLite model: $e');
+      print('ERROR loading model: $e');
     }
   }
 
   Future<void> _loadLabels() async {
     try {
-      final labelsData = await rootBundle.loadString('assets/models/labels.txt');
-      _labels = labelsData.split('\n').where((label) => label.isNotEmpty).toList();
+      final labelData = await rootBundle.loadString('assets/models/labels.txt');
+      _labels = labelData.split('\n').where((label) => label.isNotEmpty).toList();
     } catch (e) {
-      print('FATAL ERROR: Failed to load labels: $e');
+      print('ERROR loading labels: $e');
     }
   }
 
@@ -64,21 +61,23 @@ class _HomeScreenState extends State<HomeScreen> {
       final jsonString = await rootBundle.loadString('assets/data/solution_data.json');
       _solutionData = json.decode(jsonString);
     } catch (e) {
-      print('FATAL ERROR: Failed to load solution data: $e');
+      print('ERROR loading solution data: $e');
     }
   }
 
-  /// Runs the AI model on the provided image.
   Future<String> _runInference(String imagePath) async {
     if (_interpreter == null || _labels.isEmpty) throw Exception("Model or labels not loaded.");
     final imageData = await File(imagePath).readAsBytes();
     final image = img.decodeImage(imageData);
     if (image == null) throw Exception("Could not decode image.");
+
     final resizedImage = img.copyResize(image, width: 224, height: 224);
-    var inputBuffer = resizedImage.getBytes(order: img.ChannelOrder.rgb);
+    final inputBuffer = resizedImage.getBytes(order: img.ChannelOrder.rgb);
     final input = inputBuffer.reshape([1, 224, 224, 3]);
     final output = List.filled(1 * _labels.length, 0).reshape([1, _labels.length]);
+
     _interpreter!.run(input, output);
+
     final outputList = (output[0] as List<num>);
     int maxIndex = 0;
     for (int i = 1; i < outputList.length; i++) {
@@ -89,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return _labels[maxIndex];
   }
 
-  /// Saves the diagnosis result to local storage.
-  Future<void> _saveHistoryItem(String title, String tempImagePath) async {
+  // UPDATED: Now accepts the problemKey
+  Future<void> _saveHistoryItem(String title, String tempImagePath, String problemKey) async {
     final directory = await getApplicationDocumentsDirectory();
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
     final permanentImagePath = '${directory.path}/$fileName';
@@ -100,29 +99,31 @@ class _HomeScreenState extends State<HomeScreen> {
       title: title,
       imagePath: permanentImagePath,
       date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+      problemKey: problemKey, // NEW: Save the key
     );
-    
+
     final prefs = await SharedPreferences.getInstance();
     final historyList = prefs.getStringList('diagnosis_history') ?? [];
     historyList.add(json.encode(newItem.toJson()));
     await prefs.setStringList('diagnosis_history', historyList);
   }
 
-  /// Handles picking an image from the gallery and processing it.
   Future<void> _pickAndProcessImage() async {
     if (_isProcessing) return;
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
-    setState(() { _isProcessing = true; });
+    setState(() => _isProcessing = true);
 
     try {
       final problemKey = await _runInference(image.path);
       final solutionJson = _solutionData[problemKey.trim()] ?? _solutionData['default'];
       if (solutionJson == null) throw Exception("Could not find a solution.");
+
       final solution = ProblemSolution.fromJson(solutionJson);
       
-      await _saveHistoryItem(solution.title, image.path);
+      // UPDATED: Pass the problemKey when saving
+      await _saveHistoryItem(solution.title, image.path, problemKey.trim());
 
       if (mounted) {
         Navigator.of(context).push(
@@ -135,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.red,
       ));
     } finally {
-      if (mounted) setState(() { _isProcessing = false; });
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -143,20 +144,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(''),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text("AI Fix Cam"),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
-            tooltip: 'View History',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HistoryScreen()),
               );
             },
-          ),
+          )
         ],
       ),
       body: _isInitializing
@@ -190,17 +188,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                             icon: const Icon(Icons.camera_alt),
-                            label: const Text('Start Diagnosis'),
+                            label: const Text('Scan with Camera'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.lightBlue,
                               foregroundColor: Colors.white,
-                              minimumSize: const Size(double.infinity, 50),
                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                               textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // The "Upload from Gallery" button is now restored.
                           ElevatedButton.icon(
                             onPressed: _pickAndProcessImage,
                             icon: const Icon(Icons.photo_library_outlined),
@@ -208,7 +204,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey.shade800,
                               foregroundColor: Colors.white,
-                              minimumSize: const Size(double.infinity, 50),
                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                               textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
@@ -222,4 +217,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

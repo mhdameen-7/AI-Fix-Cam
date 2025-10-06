@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:aifixcam1/models/problem_model.dart';
+import 'package:aifixcam/models/problem_model.dart';
 
 class DatabaseService {
   Map<String, dynamic>? _solutionData;

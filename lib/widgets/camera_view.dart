@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aifixcam1/models/history_model.dart';
-import 'package:aifixcam1/models/problem_model.dart';
-import 'package:aifixcam1/screens/result_screen.dart';
+import 'package:aifixcam/models/history_model.dart';
+import 'package:aifixcam/models/problem_model.dart';
+import 'package:aifixcam/screens/result_screen.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +37,7 @@ class _CameraViewState extends State<CameraView> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        _showErrorDialog("No cameras found.");
+        _showErrorDialog("No cameras found on this device.");
         return;
       }
       final firstCamera = cameras.first;
@@ -95,7 +95,8 @@ class _CameraViewState extends State<CameraView> {
     }
     return _labels[maxIndex];
   }
-    Future<void> _saveHistoryItem(String title, String tempImagePath) async {
+
+  Future<void> _saveHistoryItem(String title, String tempImagePath, String problemKey) async {
     final directory = await getApplicationDocumentsDirectory();
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
     final permanentImagePath = '${directory.path}/$fileName';
@@ -105,6 +106,7 @@ class _CameraViewState extends State<CameraView> {
       title: title,
       imagePath: permanentImagePath,
       date: "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+      problemKey: problemKey,
     );
     
     final prefs = await SharedPreferences.getInstance();
@@ -124,10 +126,10 @@ class _CameraViewState extends State<CameraView> {
       if (solutionJson == null) throw Exception("Could not find a solution.");
       final solution = ProblemSolution.fromJson(solutionJson);
       
-      await _saveHistoryItem(solution.title, image.path);
+      await _saveHistoryItem(solution.title, image.path, problemKey.trim());
 
       if (mounted) {
-        // We use pop so it goes back to the home screen after results
+        // Pop the current screen (CaptureScreen) before pushing the new one.
         Navigator.of(context).pop(); 
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => ResultScreen(solution: solution)),
@@ -158,8 +160,7 @@ class _CameraViewState extends State<CameraView> {
 
   @override
   Widget build(BuildContext context) {
-    // THIS WIDGET NO LONGER RETURNS A SCAFFOLD OR APPBAR.
-    // It returns a Stack so we can place the button over the camera preview.
+    // This widget returns a Stack, NOT a Scaffold, to prevent the double AppBar.
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -173,7 +174,6 @@ class _CameraViewState extends State<CameraView> {
             }
           },
         ),
-        // Position the capture button at the bottom.
         Positioned(
           bottom: 40,
           child: FloatingActionButton.large(
@@ -188,3 +188,4 @@ class _CameraViewState extends State<CameraView> {
     );
   }
 }
+

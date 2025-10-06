@@ -1,4 +1,4 @@
-name: aifixcam1
+name: aifixcam
 description: A mobile application that helps users identify and fix common household problems.
 publish_to: 'none'
 version: 1.0.0+1

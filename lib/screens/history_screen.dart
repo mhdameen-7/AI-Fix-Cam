@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aifixcam1/models/history_model.dart';
+import 'package:aifixcam/models/history_model.dart';
+import 'package:aifixcam/models/problem_model.dart';
+import 'package:aifixcam/screens/result_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -15,31 +18,56 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   List<HistoryItem> _historyItems = [];
   bool _isLoading = true;
+  Map<String, dynamic>? _solutionData; // To hold all solutions
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    _loadAllData();
+  }
+  
+  // Load both history and the solution data file
+  Future<void> _loadAllData() async {
+    await _loadSolutionData();
+    await _loadHistory();
   }
 
-  /// Loads the saved history from local storage.
   Future<void> _loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    // Get the saved history list (it's a list of JSON strings).
     final historyJsonStringList = prefs.getStringList('diagnosis_history') ?? [];
     
-    // Decode each JSON string back into a HistoryItem object.
     final items = historyJsonStringList
         .map((jsonString) => HistoryItem.fromJson(json.decode(jsonString)))
         .toList();
 
-    if (mounted) {
-      setState(() {
-        // We reverse the list so the newest items appear at the top.
-        _historyItems = items.reversed.toList();
-        _isLoading = false;
-      });
+    setState(() {
+      _historyItems = items.reversed.toList();
+      _isLoading = false;
+    });
+  }
+  
+  // New method to load the solutions from the JSON file
+  Future<void> _loadSolutionData() async {
+    try {
+      final jsonString = await rootBundle.loadString('assets/data/solution_data.json');
+      _solutionData = json.decode(jsonString);
+    } catch (e) {
+      print('ERROR: Failed to load solution data in HistoryScreen: $e');
     }
+  }
+
+  // NEW: This function is called when a user taps a history item
+  void _onHistoryItemTapped(HistoryItem item) {
+    if (_solutionData == null || item.problemKey.isEmpty) return;
+
+    final solutionJson = _solutionData![item.problemKey] ?? _solutionData!['default'];
+    if (solutionJson == null) return;
+
+    final solution = ProblemSolution.fromJson(solutionJson);
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => ResultScreen(solution: solution)),
+    );
   }
 
   @override
@@ -67,22 +95,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       color: const Color(0xFF1E1E1E),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      // UPDATED: The ListTile is now tappable
                       child: ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
-                          // Use Image.file to load the image from the phone's storage
                           child: Image.file(
                             File(item.imagePath),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
-                            // Show an error icon if the image file was somehow deleted
-                            errorBuilder: (context, error, stack) =>
-                                const Icon(Icons.broken_image, size: 56),
+                            errorBuilder: (context, error, stack) => const Icon(Icons.broken_image, size: 56),
                           ),
                         ),
                         title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(item.date, style: TextStyle(color: Colors.white.withOpacity(0.7))),
+                        onTap: () => _onHistoryItemTapped(item), // The tap action
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                       ),
                     );
                   },
@@ -90,4 +118,3 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
-

@@ -1,4 +1,4 @@
-import 'package:aifixcam1/models/problem_model.dart';
+import 'package:aifixcam/models/problem_model.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
