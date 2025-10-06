@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Fix Cam'),
+        title: const Text(''),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
