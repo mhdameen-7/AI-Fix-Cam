@@ -1,7 +1,17 @@
-# Tell GitHub to ignore platform folders for language stats
-android/* linguist-vendored
-ios/* linguist-vendored
-linux/* linguist-vendored
-macos/* linguist-vendored
-windows/* linguist-vendored
-web/* linguist-vendored
+# Tell GitHub Linguist to treat Dart as the main language
+*.dart linguist-language=Dart
+
+# Ignore auto-generated or non-source folders/files
+build/ linguist-vendored
+web/ linguist-vendored
+ios/ linguist-vendored
+macos/ linguist-vendored
+windows/ linguist-vendored
+linux/ linguist-vendored
+test/ linguist-vendored
+*.html linguist-vendored
+*.cpp linguist-vendored
+*.h linguist-vendored
+*.cmake linguist-vendored
+*.swift linguist-vendored
+*.c linguist-vendored
