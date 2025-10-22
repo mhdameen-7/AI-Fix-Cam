@@ -15,9 +15,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Setup Flutter
-      uses: actions/setup-flutter@v1
+    - uses: subosito/flutter-action@v2
       with:
-        channel: 'stable' # This will use the latest stable version
+        channel: 'stable' # This will get the latest stable version of Flutter # This will use the latest stable version
 
     - name: Install dependencies
       run: flutter pub get
